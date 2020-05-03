@@ -33,6 +33,10 @@ func resourceStripeWebhookEndpoint() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"api_version": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"secret": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
@@ -52,6 +56,10 @@ func resourceStripeWebhookEndpointCreate(d *schema.ResourceData, m interface{}) 
 
 	if connect, ok := d.GetOk("connect"); ok {
 		params.Connect = stripe.Bool(connect.(bool))
+	}
+	
+	if api_version, ok := d.GetOk("api_version"); ok {
+		params.ApiVersion = stripe.String(api_version)
 	}
 
 	webhookEndpoint, err := client.WebhookEndpoints.New(params)
@@ -76,6 +84,7 @@ func resourceStripeWebhookEndpointRead(d *schema.ResourceData, m interface{}) er
 	d.Set("url", webhookEndpoint.URL)
 	d.Set("enabled_events", webhookEndpoint.EnabledEvents)
 	d.Set("connect", webhookEndpoint.Application != "")
+	d.Set("api_version", webhookEndpoint.ApiVersion)
 
 	return nil
 }
@@ -94,6 +103,10 @@ func resourceStripeWebhookEndpointUpdate(d *schema.ResourceData, m interface{}) 
 
 	if d.HasChange("connect") {
 		params.Connect = stripe.Bool(d.Get("connect").(bool))
+	}
+	
+	if d.HasChange("api_version") {
+		params.ApiVersion = stripe.String(d.Get("api_version").(string))
 	}
 
 	_, err := client.WebhookEndpoints.Update(d.Id(), &params)
